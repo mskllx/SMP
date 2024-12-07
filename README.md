@@ -1,2 +1,2 @@
 # SMP
-testinf READMEFILE
+testing READMEFILE
