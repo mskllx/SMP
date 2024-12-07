@@ -1,7 +1,7 @@
 <<<<<<< HEAD
 # SMP
-Readme file for practice 1
+testing README file
 =======
-# TypescriptCourse
-Some functions written in javascript
+# SMP
+testing README file
 >>>>>>> f5f6d0b (feature/modules)
