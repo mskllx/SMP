@@ -1,58 +1,66 @@
-import { findProduct, filterByPrice, addToCart, calculateTotal, BaseProduct, Electronics, Clothing, CartItem } from '../index';
+import {
+    getProductById,
+    filterProductsByCost,
+    insertToBasket,
+    computeBasketTotal,
+    ProductBase,
+    Gadget,
+    BasketItem
+} from '../index';
 
-describe("findProduct", () => {
-    it("should return the product with the specified ID", () => {
-      const products: Electronics[] = [
-        { id: 1, name: "Phone", price: 10000, category: "electronics", warranty: "2 years" },
-        { id: 2, name: "Laptop", price: 50000, category: "electronics", warranty: "1 year" }
-      ];
-      const result = findProduct(products, 1);
-      expect(result).toEqual(products[0]);
+describe("getProductById", () => {
+    it("повинно повертати товар з вказаним ID", () => {
+        const items: Gadget[] = [
+            { id: 101, title: "Смартфон", cost: 15000, type: "gadget", guarantee: "3 роки" },
+            { id: 102, title: "Ноутбук", cost: 50000, type: "gadget", guarantee: "2 роки" }
+        ];
+        const result = getProductById(items, 101);
+        expect(result).toEqual(items[0]);
     });
-  
-    it("should return undefined if the product is not found", () => {
-      const products: Electronics[] = [];
-      const result = findProduct(products, 99);
-      expect(result).toBeUndefined();
-    });
-  });
 
-describe("filterByPrice", () => {
-    it("should return products within the specified price range", () => {
-      const products: BaseProduct[] = [
-        { id: 1, name: "Phone", price: 10000 },
-        { id: 2, name: "T-shirt", price: 500 },
-        { id: 3, name: "Laptop", price: 50000 }
-      ];
-      const result = filterByPrice(products, 10000);
-      expect(result).toEqual([products[0], products[1]]);
+    it("повинно повертати undefined, якщо товар не знайдено", () => {
+        const items: Gadget[] = [];
+        const result = getProductById(items, 999);
+        expect(result).toBeUndefined();
     });
-  });
+});
 
-  describe("addToCart", () => {
-    it("should add a new product to the cart", () => {
-      const cart: CartItem<Electronics>[] = [];
-      const product: Electronics = { id: 1, name: "Phone", price: 10000, category: "electronics", warranty: "2 years" };
-      const result = addToCart(cart, product, 1);
-      expect(result).toHaveLength(1);
-      expect(result[0].quantity).toBe(1);
+describe("filterProductsByCost", () => {
+    it("повинно повертати товари у межах заданої ціни", () => {
+        const items: ProductBase[] = [
+            { id: 101, title: "Смартфон", cost: 15000 },
+            { id: 102, title: "Футболка", cost: 500 },
+            { id: 103, title: "Ноутбук", cost: 50000 }
+        ];
+        const result = filterProductsByCost(items, 15000);
+        expect(result).toEqual([items[0], items[1]]);
     });
-  
-    it("should increase the quantity if the product is already in the cart", () => {
-      const product: Electronics = { id: 1, name: "Phone", price: 10000, category: "electronics", warranty: "2 years" };
-      const cart: CartItem<Electronics>[] = [{ product, quantity: 1 }];
-      const result = addToCart(cart, product, 1);
-      expect(result[0].quantity).toBe(2);
-    });
-  });
+});
 
-  describe("calculateTotal", () => {
-    it("should calculate the total price of all items in the cart", () => {
-      const cart: CartItem<BaseProduct>[] = [
-        { product: { id: 1, name: "Phone", price: 10000 }, quantity: 2 },
-        { product: { id: 2, name: "T-shirt", price: 500 }, quantity: 3 }
-      ];
-      const total = calculateTotal(cart);
-      expect(total).toBe(21500); // 10000 * 2 + 500 * 3
+describe("insertToBasket", () => {
+    it("повинно додавати новий товар у кошик", () => {
+        const basket: BasketItem<Gadget>[] = [];
+        const item: Gadget = { id: 101, title: "Смартфон", cost: 15000, type: "gadget", guarantee: "3 роки" };
+        const result = insertToBasket(basket, item, 1);
+        expect(result).toHaveLength(1);
+        expect(result[0].amount).toBe(1);
     });
-  });  
+
+    it("повинно збільшувати кількість, якщо товар вже у кошику", () => {
+        const item: Gadget = { id: 101, title: "Смартфон", cost: 15000, type: "gadget", guarantee: "3 роки" };
+        const basket: BasketItem<Gadget>[] = [{ item, amount: 1 }];
+        const result = insertToBasket(basket, item, 1);
+        expect(result[0].amount).toBe(2);
+    });
+});
+
+describe("computeBasketTotal", () => {
+    it("повинно розраховувати загальну суму кошика", () => {
+        const basket: BasketItem<ProductBase>[] = [
+            { item: { id: 101, title: "Смартфон", cost: 15000 }, amount: 2 },
+            { item: { id: 102, title: "Футболка", cost: 500 }, amount: 3 }
+        ];
+        const total = computeBasketTotal(basket);
+        expect(total).toBe(31500); // 15000 * 2 + 500 * 3
+    });
+});
