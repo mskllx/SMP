@@ -1,10 +1,10 @@
-import { BaseContent } from './baseContent';
+import { BasicEntity } from './basicEntity';
 
-export interface Article extends BaseContent {
-    title: string;
-    content: string;
-    authorId: string;
-    tags: string[];
-    summary?: string;
-    imageUrl?: string;
+export interface Post extends BasicEntity {
+    headline: string;
+    body: string;
+    creatorId: string;
+    categories: string[];
+    excerpt?: string;
+    coverImage?: string;
 }
