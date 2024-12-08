@@ -1,5 +1,5 @@
-import {User,Role,Permission} from '../interfaces/user';
+import { Account, Role, Access } from '../interfaces/account';
 
-export function hasPermission(user:User,permission:Permission): boolean{
-    return user.role.permissions.includes(permission);
+export function checkAccess(account: Account, access: Access): boolean {
+    return account.role.access.includes(access);
 }
