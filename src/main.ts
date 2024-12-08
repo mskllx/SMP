@@ -1,40 +1,43 @@
-import { Article } from './interfaces/article';
-import { ArticleValidator } from './services/articleValidator';
-import { ArticleOperations } from './services/articleOperations';
-import {User,Role,Permission} from './interfaces/user';
-import { hasPermission } from 'services/hasPermission';
+import { Content } from './interfaces/content';
+import { ContentValidator } from './services/contentValidator';
+import { ContentManager } from './services/contentManager';
+import { Account, Role, Access } from './interfaces/account';
+import { checkAccess } from './services/accessControl';
 
-const article: Article = {
-    id: '1',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    status: 'Чорновик',
-    title: 'Заголовок статті',
-    content: 'Текст статті',
-    authorId: 'author1',
-    tags: ['новини', 'ІТ'],
+// Стаття для тестування
+const content: Content = {
+    id: '001',
+    createdOn: new Date(),
+    modifiedOn: new Date(),
+    state: 'Draft',
+    headline: 'Тема статті',
+    body: 'Це текст статті',
+    author: 'author001',
+    categories: ['технології', 'новини'],
 };
 
-const admin: User = {
-    id: '1',
-    username: 'admin',
-    password: 'admin123',
-    role: { 
-        permissions: ['READ', 'WRITE', 'DELETE']
+// Користувач із адміністративними правами
+const adminUser: Account = {
+    id: 'admin001',
+    username: 'superuser',
+    password: 'securepass',
+    role: {
+        access: ['VIEW', 'CREATE', 'REMOVE']
     }
 };
 
+// Валідація статті
+const contentValidator = new ContentValidator();
+const validationResult = contentValidator.validate(content);
 
-const validator = new ArticleValidator();
-const validation = validator.validate(article);
-
-if (validation.isValid) {
-    console.log('Стаття валідна');
+if (validationResult.isValid) {
+    console.log('Вміст пройшов перевірку');
 } else {
-    console.error('Помилки валідації:', validation.errors);
+    console.error('Виявлені помилки:', validationResult.errors);
 }
 
-const articleOps = new ArticleOperations();
-articleOps.create(admin,article).then((created: Article|string) => {
-    console.log('Створено статтю:', created);
+// Операції з контентом
+const contentManager = new ContentManager();
+contentManager.add(adminUser, content).then((result: Content | string) => {
+    console.log('Новий вміст додано:', result);
 });
