@@ -1,157 +1,157 @@
-// Type alias для днів тижня
-export type DayOfWeek = "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday";
+// Типи для днів тижня
+type Day = "Понеділок" | "Вівторок" | "Середа" | "Четвер" | "П’ятниця";
 
-// Union type для часових слотів
-export type TimeSlot = 
+// Типи для часових проміжків
+type Slot = 
     "8:30-10:00" | 
     "10:15-11:45" | 
     "12:15-13:45" | 
     "14:00-15:30" | 
     "15:45-17:15";
 
-// Type alias для типів занять
-export type CourseType = "Lecture" | "Seminar" | "Lab" | "Practice";
+// Типи для занять
+type LessonType = "Лекція" | "Семінар" | "Лабораторна" | "Практика";
 
-// Type alias Professor
-export type Professor = {
+// Тип для викладачів
+type Teacher = {
     id: number;
-    name: string;
-    department: string;
+    fullName: string;
+    faculty: string;
 };
 
-// Type alias Classroom
-export type Classroom = {
-    number: string;
-    capacity: number;
-    hasProjector: boolean;
+// Тип для аудиторій
+type Room = {
+    id: string;
+    size: number;
+    hasEquipment: boolean;
 };
 
-// Type alias Course
-export type Course = {
+// Тип для курсів
+type Subject = {
     id: number;
-    name: string;
-    type: CourseType;
+    title: string;
+    category: LessonType;
 };
 
-// Type alias Lesson
-export type Lesson = {
-    courseId: number;
-    professorId: number;
-    classroomNumber: string;
-    dayOfWeek: DayOfWeek;
-    timeSlot: TimeSlot;
+// Тип для занять
+type ScheduleItem = {
+    subjectId: number;
+    teacherId: number;
+    roomId: string;
+    day: Day;
+    slot: Slot;
 };
 
-// Масиви даних
-export let professors: Professor[] = [];
-export let classrooms: Classroom[] = [];
-export let courses: Course[] = [];
-export let schedule: Lesson[] = [];
+// Бази даних
+let teachers: Teacher[] = [];
+let rooms: Room[] = [];
+let subjects: Subject[] = [];
+let timetable: ScheduleItem[] = [];
 
-// Функція для додавання нового професора
-export function addProfessor(professor: Professor): void {
-    professors.push(professor);
+// Додавання викладача
+function addTeacher(newTeacher: Teacher): void {
+    teachers.push(newTeacher);
 }
 
-// Функція для додавання заняття до розкладу
-export function addLesson(lesson: Lesson): boolean {
-    const conflict = validateLesson(lesson);
-    if (conflict === null) {
-        schedule.push(lesson);
+// Додавання заняття
+function scheduleLesson(item: ScheduleItem): boolean {
+    if (!checkConflicts(item)) {
+        timetable.push(item);
         return true;
     }
     return false;
 }
 
-// Функція для пошуку вільних аудиторій
-export function findAvailableClassrooms(timeSlot: TimeSlot, dayOfWeek: DayOfWeek): string[] {
-    const occupiedClassrooms = schedule
-        .filter(lesson => lesson.timeSlot === timeSlot && lesson.dayOfWeek === dayOfWeek)
-        .map(lesson => lesson.classroomNumber);
-    
-    return classrooms
-        .filter(classroom => !occupiedClassrooms.includes(classroom.number))
-        .map(classroom => classroom.number);
+// Перевірка доступних аудиторій
+function getAvailableRooms(slot: Slot, day: Day): string[] {
+    const bookedRooms = timetable
+        .filter(entry => entry.slot === slot && entry.day === day)
+        .map(entry => entry.roomId);
+
+    return rooms
+        .filter(room => !bookedRooms.includes(room.id))
+        .map(room => room.id);
 }
 
-// Функція для отримання розкладу конкретного професора
-export function getProfessorSchedule(professorId: number): Lesson[] {
-    return schedule.filter(lesson => lesson.professorId === professorId);
+// Розклад викладача
+function teacherSchedule(teacherId: number): ScheduleItem[] {
+    return timetable.filter(entry => entry.teacherId === teacherId);
 }
 
-// Type alias для конфліктів
-export type ScheduleConflict = {
-    type: "ProfessorConflict" | "ClassroomConflict";
-    lessonDetails: Lesson;
+// Тип для конфліктів у розкладі
+type Conflict = {
+    reason: "TeacherBusy" | "RoomBusy";
+    conflictingItem: ScheduleItem;
 };
 
-// Функція для валідації заняття
-export function validateLesson(lesson: Lesson): ScheduleConflict | null {
-    const professorConflict = schedule.find(
-        l => l.professorId === lesson.professorId && l.timeSlot === lesson.timeSlot && l.dayOfWeek === lesson.dayOfWeek
+// Перевірка конфліктів
+function checkConflicts(item: ScheduleItem): Conflict | null {
+    const teacherConflict = timetable.find(
+        entry => entry.teacherId === item.teacherId && entry.slot === item.slot && entry.day === item.day
     );
-    if (professorConflict) {
-        return { type: "ProfessorConflict", lessonDetails: professorConflict };
+    if (teacherConflict) {
+        return { reason: "TeacherBusy", conflictingItem: teacherConflict };
     }
 
-    const classroomConflict = schedule.find(
-        l => l.classroomNumber === lesson.classroomNumber && l.timeSlot === lesson.timeSlot && l.dayOfWeek === lesson.dayOfWeek
+    const roomConflict = timetable.find(
+        entry => entry.roomId === item.roomId && entry.slot === item.slot && entry.day === item.day
     );
-    if (classroomConflict) {
-        return { type: "ClassroomConflict", lessonDetails: classroomConflict };
+    if (roomConflict) {
+        return { reason: "RoomBusy", conflictingItem: roomConflict };
     }
 
     return null;
 }
 
-// Функція для визначення використання аудиторії
-export function getClassroomUtilization(classroomNumber: string): number {
-    const totalSlots = 5 * 5; // 5 днів, 5 слотів на день
-    const occupiedSlots = schedule.filter(lesson => lesson.classroomNumber === classroomNumber).length;
-    return (occupiedSlots / totalSlots) * 100;
+// Використання аудиторій
+function roomUsage(roomId: string): number {
+    const totalSlots = 5 * 5; // 5 днів, 5 часових слотів
+    const usedSlots = timetable.filter(entry => entry.roomId === roomId).length;
+    return (usedSlots / totalSlots) * 100;
 }
 
-// Функція для визначення найпопулярнішого типу занять
-export function getMostPopularCourseType(): CourseType {
-    const courseTypeCount: Record<CourseType, number> = {
-        "Lecture": 0,
-        "Seminar": 0,
-        "Lab": 0,
-        "Practice": 0
+// Найбільш популярний тип занять
+function mostPopularLessonType(): LessonType {
+    const typeCounts: Record<LessonType, number> = {
+        "Лекція": 0,
+        "Семінар": 0,
+        "Лабораторна": 0,
+        "Практика": 0
     };
 
-    schedule.forEach(lesson => {
-        const course = courses.find(c => c.id === lesson.courseId);
-        if (course) {
-            courseTypeCount[course.type]++;
+    timetable.forEach(entry => {
+        const subject = subjects.find(s => s.id === entry.subjectId);
+        if (subject) {
+            typeCounts[subject.category]++;
         }
     });
 
-    return Object.keys(courseTypeCount).reduce((a, b) => 
-        courseTypeCount[a as CourseType] > courseTypeCount[b as CourseType] ? a : b
-    ) as CourseType;
+    return Object.keys(typeCounts).reduce((a, b) => 
+        typeCounts[a as LessonType] > typeCounts[b as LessonType] ? a : b
+    ) as LessonType;
 }
 
-// Функція для зміни аудиторії
-export function reassignClassroom(lessonId: number, newClassroomNumber: string): boolean {
-    const lesson = schedule.find(l => l.courseId === lessonId);
+// Перепризначення аудиторії
+function updateRoom(lessonId: number, newRoomId: string): boolean {
+    const lesson = timetable.find(entry => entry.subjectId === lessonId);
     if (lesson) {
-        const conflict = schedule.find(
-            l => l.classroomNumber === newClassroomNumber && l.timeSlot === lesson.timeSlot && l.dayOfWeek === lesson.dayOfWeek
+        const conflict = timetable.find(
+            entry => entry.roomId === newRoomId && entry.slot === lesson.slot && entry.day === lesson.day
         );
         if (!conflict) {
-            lesson.classroomNumber = newClassroomNumber;
+            lesson.roomId = newRoomId;
             return true;
         }
     }
     return false;
 }
 
-// Функція для скасування заняття
-export function cancelLesson(lessonId: number): void {
-    schedule = schedule.filter(lesson => lesson.courseId !== lessonId);
+// Скасування заняття
+function removeLesson(subjectId: number): void {
+    timetable = timetable.filter(entry => entry.subjectId !== subjectId);
 }
 
-export function resetProfessors(): void{
-    professors=[];
+// Скидання списку викладачів
+function clearTeachers(): void {
+    teachers = [];
 }
