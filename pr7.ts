@@ -1,161 +1,159 @@
-//TODO: make explicit comments
-enum StudentStatus {
-    Active, 
-    Academic_Leave, 
-    Graduated, 
-    Expelled
-};
-
-enum CourseType {
-    Mandatory, 
-    Optional, 
-    Special
+enum EnrollmentStatus {
+    Active,
+    OnLeave,
+    Graduated,
+    Removed
 }
 
-enum Semester {
-    First,
-    Second
+enum SubjectType {
+    Core,
+    Elective,
+    Advanced
 }
 
-enum Grades {
-    Excellent = 5, 
-    Good = 4, 
-    Satisfactory = 3, 
-    Unsatisfactory = 2
+enum Term {
+    Fall,
+    Spring
 }
 
-enum Faculty {
-    Computer_Science, 
-    Economics, 
-    Law, 
+enum Rating {
+    Excellent = 5,
+    VeryGood = 4,
+    Pass = 3,
+    Fail = 2
+}
+
+enum Department {
+    IT,
+    Business,
+    Law,
     Engineering
 }
 
-interface Student {
-    id: number;
-    fullName: string;
-    faculty: Faculty;
-    year: number;
-    status: StudentStatus;
-    enrollmentDate: Date;
-    groupNumber: string;
-}
-
-interface Course {
-    id: number;
-    name: string;
-    type: CourseType;
-    credits: number;
-    semester: Semester;
-    faculty: Faculty;
-    maxStudents: number;
-}
-
-interface Grade {
+interface Learner {
     studentId: number;
-    courseId: number;
-    grade: Grades;
-    date: Date;
-    semester: Semester;
+    name: string;
+    department: Department;
+    yearOfStudy: number;
+    status: EnrollmentStatus;
+    dateOfEnrollment: Date;
+    groupCode: string;
 }
 
-class UniversityManagmentSystem{
-    private students: Student[] = [];
-    private courses: Course[] = [];
-    private grades: Grade[] = [];
-    private studentIdCounter: number = 1;
-    private courseIdCounter: number = 1;
+interface Subject {
+    courseId: number;
+    title: string;
+    category: SubjectType;
+    creditHours: number;
+    term: Term;
+    department: Department;
+    maxParticipants: number;
+}
 
-    enrollStudent(student: Omit<Student, "id">): Student{
-        const newStudent: Student = {id: this.studentIdCounter++, ...student};
-        this.students.push(newStudent);
-        return newStudent;
+interface Assessment {
+    learnerId: number;
+    subjectId: number;
+    score: Rating;
+    evaluationDate: Date;
+    term: Term;
+}
+
+class AcademicManagement {
+    private learners: Learner[] = [];
+    private subjects: Subject[] = [];
+    private assessments: Assessment[] = [];
+    private learnerIdCounter: number = 1;
+    private subjectIdCounter: number = 1;
+
+    addLearner(details: Omit<Learner, "studentId">): Learner {
+        const newLearner: Learner = { studentId: this.learnerIdCounter++, ...details };
+        this.learners.push(newLearner);
+        return newLearner;
     }
 
-    registerForCourse(studentId: number, courseId: number): void{
-        const student = this.students.find(s => s.id === studentId);
-        const course = this.courses.find(c => c.id === courseId);
+    registerSubject(learnerId: number, subjectId: number): void {
+        const learner = this.learners.find(l => l.studentId === learnerId);
+        const subject = this.subjects.find(s => s.courseId === subjectId);
 
-        if (!student || !course) {
-            throw new Error("Student or course not found.");
+        if (!learner || !subject) {
+            throw new Error("Learner or subject not found.");
         }
 
-        if (student.faculty !== course.faculty) {
-            throw new Error("Student cannot register for courses of another faculty.");
+        if (learner.department !== subject.department) {
+            throw new Error("Learner cannot register for subjects outside their department.");
         }
 
-        const courseRegistrations = this.grades.filter(g => g.courseId === courseId);
-        if (courseRegistrations.length >= course.maxStudents) {
-            throw new Error("Course has reached the maximum number of students.");
+        const registrations = this.assessments.filter(a => a.subjectId === subjectId);
+        if (registrations.length >= subject.maxParticipants) {
+            throw new Error("Subject capacity reached.");
         }
 
-        this.grades.push({
-            studentId,
-            courseId,
-            grade: null as unknown as Grades, 
-            date: new Date(),
-            semester: course.semester
+        this.assessments.push({
+            learnerId,
+            subjectId,
+            score: null as unknown as Rating,
+            evaluationDate: new Date(),
+            term: subject.term
         });
     }
 
-    setGrade(studentId: number, courseId: number, grade: Grades): void {
-        const registrationExists = this.grades.some(g => g.studentId === studentId && g.courseId === courseId);
+    assignGrade(learnerId: number, subjectId: number, grade: Rating): void {
+        const registrationExists = this.assessments.some(a => a.learnerId === learnerId && a.subjectId === subjectId);
         if (!registrationExists) {
-            throw new Error("Student is not registered for this course");
+            throw new Error("Learner is not registered for this subject.");
         }
 
-        const course = this.courses.find(c => c.id === courseId);
-        if (!course) {
-            throw new Error("Course not found");
+        const subject = this.subjects.find(s => s.courseId === subjectId);
+        if (!subject) {
+            throw new Error("Subject not found.");
         }
 
-        const newGrade: Grade = {
-            studentId,
-            courseId,
-            grade,
-            date: new Date(),
-            semester: course.semester
+        const newAssessment: Assessment = {
+            learnerId,
+            subjectId,
+            score: grade,
+            evaluationDate: new Date(),
+            term: subject.term
         };
 
-        this.grades.push(newGrade);
+        this.assessments.push(newAssessment);
     }
-    updateStudentStatus(studentId: number, newStatus: StudentStatus): void{
-        const student = this.students.find(s => s.id === studentId);
-        if(!student){
-            throw new Error("Student not found");
+
+    updateStatus(learnerId: number, newStatus: EnrollmentStatus): void {
+        const learner = this.learners.find(l => l.studentId === learnerId);
+        if (!learner) {
+            throw new Error("Learner not found.");
         }
 
-        student.status = newStatus;
+        learner.status = newStatus;
+    }
+    getLearnersByDepartment(department: Department): Learner[] {
+        return this.learners.filter(l => l.department === department);
+    }
+    getGrades(learnerId: number): Assessment[] {
+        return this.assessments.filter(a => a.learnerId === learnerId);
+    }
+    getAvailableSubjects(department: Department, term: Term): Subject[] {
+        return this.subjects.filter(s => s.department === department && s.term === term);
     }
 
-    getStudentsByFaculty(faculty: Faculty): Student[]{
-        return this.students.filter(s => s.faculty === faculty);
-    }
-
-    getStudentGrades(studentId: number): Grade[]{
-        return this.grades.filter(g => g.studentId === studentId);
-    }
-
-    getAvailableCourses(faculty: Faculty, semester: Semester): Course[]{
-        return this.courses.filter(c => c.faculty === faculty && c.semester === semester);
-    }
-
-    calculateAverageGrade(studentId: number): number{
-        const validGrades = this.grades.filter(g => g.grade !== null && g.grade !== undefined);
+    // Calculate the average grade for a learner
+    computeAverageGrade(learnerId: number): number {
+        const validGrades = this.assessments.filter(a => a.learnerId === learnerId && a.score !== null);
         if (validGrades.length === 0) {
-            throw new Error("No grades available for this student");
+            throw new Error("No grades available for this learner.");
         }
 
-        const total = validGrades.reduce((sum, g) => sum + g.grade, 0);
+        const total = validGrades.reduce((sum, a) => sum + a.score, 0);
         return total / validGrades.length;
     }
 
-    getTopPerformers(faculty: Faculty): Student[] {
-        return this.students.filter(student => {
-            const studentGrades = this.grades.filter(g => g.studentId === student.id && g.grade !== null);
-            return studentGrades.length > 0 &&
-                   studentGrades.every(g => g.grade === Grades.Excellent) &&
-                   student.faculty === faculty;
+    getTopLearners(department: Department): Learner[] {
+        return this.learners.filter(learner => {
+            const learnerGrades = this.assessments.filter(a => a.learnerId === learner.studentId && a.score !== null);
+            return learnerGrades.length > 0 &&
+                learnerGrades.every(a => a.score === Rating.Excellent) &&
+                learner.department === department;
         });
     }
 }
