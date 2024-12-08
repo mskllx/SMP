@@ -1,17 +1,17 @@
-import { Article } from '../interfaces/article';
-import { Validator, ValidationResult } from './Validator';
+import { Content } from '../interfaces/content';
+import { Checker, ValidationOutcome } from './Checker';
 
-export class ArticleValidator implements Validator<Article> {
-    validate(data: Article): ValidationResult {
-        const errors: string[] = [];
+export class ContentChecker implements Checker<Content> {
+    verify(input: Content): ValidationOutcome {
+        const issues: string[] = [];
 
-        if (!data.title) errors.push('Title is required.');
-        if (!data.content) errors.push('Content is required.');
-        if (!data.authorId) errors.push('Author ID is required.');
+        if (!input.headline) issues.push('Заголовок є обов’язковим.');
+        if (!input.body) issues.push('Текст статті є обов’язковим.');
+        if (!input.author) issues.push('ID автора є обов’язковим.');
 
         return {
-            isValid: errors.length === 0,
-            errors: errors.length ? errors : undefined,
+            success: issues.length === 0,
+            issues: issues.length ? issues : undefined,
         };
     }
 }
