@@ -1,7 +1,7 @@
-export interface BaseContent {
+export interface BasicEntity {
     id: string;
-    createdAt: Date;
-    updatedAt: Date;
-    publishedAt?: Date;
-    status: 'Чорновик' | 'Опубліковано' | 'Заархівовано';
+    createdOn: Date;
+    modifiedOn: Date;
+    releasedOn?: Date;
+    state: 'Чернетка' | 'Опубліковано' | 'Заархівовано';
 }
