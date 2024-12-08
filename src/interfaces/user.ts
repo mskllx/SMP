@@ -1,12 +1,12 @@
-export interface User {
+export interface Account {
     id: string;
-    username: string;
-    password: string;
-    role: Role; 
+    login: string;
+    secret: string;
+    role: UserRole;
 }
 
-export interface Role {
-    permissions: Permission[]; 
+export interface UserRole {
+    accessRights: Access[];
 }
 
-export type Permission = 'READ' | 'UPDATE' | 'WRITE' | 'DELETE';
+export type Access = 'VIEW' | 'MODIFY' | 'CREATE' | 'REMOVE';
