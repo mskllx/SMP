@@ -1,5 +1,5 @@
-import { BaseContent } from './baseContent';
+import { BasicEntity } from './basicEntity';
 
-export type Versioned<T extends BaseContent> = T & {
-    version: number;
+export type Tracked<T extends BasicEntity> = T & {
+    revision: number;
 };
