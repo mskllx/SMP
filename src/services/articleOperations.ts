@@ -1,63 +1,68 @@
-import { Versioned } from 'interfaces/Version';
-import { Article } from '../interfaces/article';
-import { ContentOperations } from './ContentOperations';
-import {hasPermission} from './hasPermission';
-import { User,Role,Permission } from 'interfaces/user';
+import { Tracked } from '../interfaces/Tracked';
+import { Content } from '../interfaces/content';
+import { ContentManagerActions } from './ContentManagerActions';
+import { checkAccess } from './accessControl';
+import { Account, Role, Access } from '../interfaces/account';
 
-export class ArticleOperations implements ContentOperations<Article> {
-    private versionedArticles: Map<string, Versioned<Article>> = new Map();
+export class ContentManager implements ContentManagerActions<Content> {
+    private trackedContents: Map<string, Tracked<Content>> = new Map();
 
-    async create(user:User,item: Article): Promise<Versioned<Article>> {
-        if(!hasPermission(user,"WRITE")){
-            throw new Error('Not enough rights');
+    async add(account: Account, item: Content): Promise<Tracked<Content>> {
+        if (!checkAccess(account, "CREATE")) {
+            throw new Error('Недостатньо прав');
         }
-        const versionedArticle: Versioned<Article> = {
+
+        const trackedContent: Tracked<Content> = {
             ...item,
             version: 1,
         };
-        this.versionedArticles.set(item.id, versionedArticle);
-        return versionedArticle;
+
+        this.trackedContents.set(item.id, trackedContent);
+        return trackedContent;
     }
 
-    async read(user:User,id: string): Promise<Article | null> {
-        if(!hasPermission(user,"READ")){
-            throw new Error('Not enough rights');
+    async fetch(account: Account, id: string): Promise<Content | null> {
+        if (!checkAccess(account, "VIEW")) {
+            throw new Error('Недостатньо прав');
         }
-        const article = this.versionedArticles.get(id);
-        return article ?? null;
+
+        const content = this.trackedContents.get(id);
+        return content ?? null;
     }
 
-    async update(user:User,id: string, updates: Partial<Article>): Promise<Versioned<Article>> {
-        if(!hasPermission(user,"UPDATE")){
-            throw new Error('Not enough rights');
-        }
-        const existingArticle = this.versionedArticles.get(id);
-        if (!existingArticle) {
-            throw new Error('Article not found');
+    async modify(account: Account, id: string, changes: Partial<Content>): Promise<Tracked<Content>> {
+        if (!checkAccess(account, "UPDATE")) {
+            throw new Error('Недостатньо прав');
         }
 
-        const updatedArticle: Versioned<Article> = {
-            ...existingArticle,
-            ...updates,
-            version: existingArticle.version + 1
+        const existingContent = this.trackedContents.get(id);
+        if (!existingContent) {
+            throw new Error('Контент не знайдено');
+        }
+
+        const updatedContent: Tracked<Content> = {
+            ...existingContent,
+            ...changes,
+            version: existingContent.version + 1,
         };
 
-        this.versionedArticles.set(id, updatedArticle);
-        return updatedArticle;
+        this.trackedContents.set(id, updatedContent);
+        return updatedContent;
     }
 
-    async delete(user:User,id: string): Promise<void> {
-        if(!hasPermission(user,"DELETE")){
-            throw new Error('Not enough rights');
+    async remove(account: Account, id: string): Promise<void> {
+        if (!checkAccess(account, "REMOVE")) {
+            throw new Error('Недостатньо прав');
         }
-        this.versionedArticles.delete(id);
+
+        this.trackedContents.delete(id);
     }
 
-    async list(user:User,params?: any): Promise<Article[]> {
-        if (!hasPermission(user, "READ")) {
-            throw new Error('Not enough rights');
+    async listAll(account: Account, filters?: any): Promise<Content[]> {
+        if (!checkAccess(account, "VIEW")) {
+            throw new Error('Недостатньо прав');
         }
 
-        return Array.from(this.versionedArticles.values());
+        return Array.from(this.trackedContents.values());
     }
 }
