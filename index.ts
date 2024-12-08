@@ -1,63 +1,90 @@
-export type BaseProduct = {
+// Основний тип для товарів
+type ProductBase = {
     id: number;
-    name: string;
-    price: number;
-  };
-  
-export type Electronics = BaseProduct & {
-    category: 'electronics';
-    warranty: string;
-  };
-  
-export type Clothing = BaseProduct & {
-    category: 'clothing';
-    size: string;
-    material: string;
-  };
+    title: string;
+    cost: number;
+};
 
-export const findProduct = <T extends BaseProduct>(products: T[], id: number): T | undefined => {
-    return products.find(product => product.id === id);
-  };
+// Тип для електроніки
+type Gadget = ProductBase & {
+    type: 'gadget';
+    guarantee: string;
+};
 
- export const filterByPrice = <T extends BaseProduct>(products: T[], maxPrice: number): T[] => {
-    return products.filter(product => product.price <= maxPrice);
-  };
+// Тип для одягу
+type Apparel = ProductBase & {
+    type: 'apparel';
+    dimensions: string;
+    fabric: string;
+};
 
-export type CartItem<T> = {
-    product: T;
-    quantity: number;
-  };
-  
-export const addToCart = <T extends BaseProduct>(
-    cart: CartItem<T>[],
-    product: T,
-    quantity: number
-  ): CartItem<T>[] => {
-    const existingItem = cart.find(item => item.product.id === product.id);
-    if (existingItem) {
-      existingItem.quantity += quantity;
-    } else {
-      cart.push({ product, quantity });
+// Функція для пошуку товару за ID
+function getProductById<T extends ProductBase>(items: T[], productId: number): T | undefined {
+    if (!Array.isArray(items) || typeof productId !== 'number') {
+        throw new Error("Некоректні вхідні дані");
     }
-    return cart;
-  };
-  
-export const calculateTotal = <T extends BaseProduct>(cart: CartItem<T>[]): number => {
-    return cart.reduce((total, item) => total + item.product.price * item.quantity, 0);
-  };
-  
-export const electronics: Electronics[] = [
-    { id: 1, name: "Телефон", price: 10000, category: 'electronics', warranty: "2 years" }
-  ];
-export const clothing: Clothing[] = [
-    { id: 2, name: "Футболка", price: 500, category: 'clothing', size: "M", material: "cotton" }
-  ];
-  
-export const phone = findProduct(electronics, 1);
-  
-export const cart: CartItem<Electronics | Clothing>[] = [];
-  addToCart(cart, phone as Electronics, 1);
-  
-export const total = calculateTotal(cart);
-  console.log(total);
-  
+    return items.find(item => item.id === productId);
+}
+
+// Функція для фільтрації товарів за ціною
+function filterProductsByCost<T extends ProductBase>(items: T[], maxCost: number): T[] {
+    if (!Array.isArray(items) || typeof maxCost !== 'number') {
+        throw new Error("Некоректні вхідні дані");
+    }
+    return items.filter(item => item.cost <= maxCost);
+}
+
+// Тип для елементів кошика
+type BasketItem<T> = {
+    item: T;
+    amount: number;
+};
+
+// Функція для додавання товару до кошика
+function insertToBasket<T extends ProductBase>(
+    basket: BasketItem<T>[],
+    item: T,
+    count: number
+): BasketItem<T>[] {
+    if (!Array.isArray(basket) || typeof count !== 'number') {
+        throw new Error("Некоректні вхідні дані");
+    }
+
+    const existing = basket.find(basketItem => basketItem.item.id === item.id);
+    if (existing) {
+        existing.amount += count;
+    } else {
+        basket.push({ item, amount: count });
+    }
+    return basket;
+}
+
+// Функція для підрахунку загальної вартості кошика
+function computeBasketTotal<T extends ProductBase>(basket: BasketItem<T>[]): number {
+    if (!Array.isArray(basket)) {
+        throw new Error("Некоректні вхідні дані");
+    }
+
+    return basket.reduce((sum, basketItem) => sum + basketItem.item.cost * basketItem.amount, 0);
+}
+
+// Приклади даних для електроніки
+const gadgets: Gadget[] = [
+    { id: 101, title: "Смартфон", cost: 15000, type: 'gadget', guarantee: "3 роки" }
+];
+
+// Приклади даних для одягу
+const apparels: Apparel[] = [
+    { id: 202, title: "Куртка", cost: 2000, type: 'apparel', dimensions: "L", fabric: "бавовна" }
+];
+
+// Пошук товару за ID
+const smartphone = getProductById(gadgets, 101);
+
+// Кошик покупок
+const shoppingBasket: BasketItem<Gadget | Apparel>[] = [];
+insertToBasket(shoppingBasket, smartphone as Gadget, 2);
+
+// Розрахунок загальної вартості
+const totalCost = computeBasketTotal(shoppingBasket);
+console.log("Загальна сума:", totalCost);
