@@ -1,8 +1,8 @@
-export type ValidationResult = {
-    isValid: boolean;
-    errors?: string[];
+export type ValidationOutcome = {
+    success: boolean;
+    issues?: string[];
 };
 
-export interface Validator<T> {
-    validate(data: T): ValidationResult;
+export interface Checker<T> {
+    verify(input: T): ValidationOutcome;
 }
