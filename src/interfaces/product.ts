@@ -1,11 +1,11 @@
-import { BaseContent } from './baseContent';
+import { BasicEntity } from './basicEntity';
 
-export interface Product extends BaseContent {
-    name: string;
-    description: string;
-    price: number;
-    sku: string;
-    stock: number;
-    category?: string;
-    images?: string[];
+export interface Item extends BasicEntity {
+    title: string;
+    details: string;
+    cost: number;
+    identifier: string;
+    availability: number;
+    group?: string;
+    photos?: string[];
 }
