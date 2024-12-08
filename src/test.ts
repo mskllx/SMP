@@ -1,36 +1,36 @@
 import {
-    addProfessor,
-    addLesson,
-    findAvailableClassrooms,
-    getProfessorSchedule,
-    validateLesson,
-    getClassroomUtilization,
-    getMostPopularCourseType,
-    reassignClassroom,
-    cancelLesson,
-    Professor,
-    Classroom,
-    Course,
-    Lesson,
-    DayOfWeek,
-    TimeSlot,
-    CourseType,
-    professors,
-    resetProfessors
+    addTeacher,
+    scheduleLesson,
+    getAvailableRooms,
+    teacherSchedule,
+    checkConflicts,
+    roomUsage,
+    mostPopularLessonType,
+    updateRoom,
+    removeLesson,
+    Teacher,
+    Room,
+    Subject,
+    ScheduleItem,
+    Day,
+    Slot,
+    LessonType,
+    teachers,
+    clearTeachers
 } from './index';
 
-describe('Schedule Management System', () => {
-    const professor: Professor = { id: 1, name: 'Linus', department: 'Computer Science' };
+describe('Система управління розкладом', () => {
+    const викладач: Teacher = { id: 1, fullName: 'Лінус Торвальдс', faculty: 'Інформатика' };
 
     beforeEach(() => {
-        resetProfessors();
+        clearTeachers();
 
-        // Add sample data
-        addProfessor(professor);
+        // Додавання тестових даних
+        addTeacher(викладач);
     });
 
-    test('should add a professor', () => {
-        expect(professors.length).toBe(1);
-        expect(professors[0]).toEqual(professor);
+    test('повинно додавати викладача', () => {
+        expect(teachers.length).toBe(1);
+        expect(teachers[0]).toEqual(викладач);
     });
 });
